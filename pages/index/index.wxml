@@ -1,5 +1,5 @@
 <!--index.wxml-->
-<view class="container" wx:if="{{!hasUserInfo}}">
+<view class="container">
   <view class="userinfo">
     <button wx:if="{{!hasUserInfo && canIUse}}" open-type="getUserInfo" bindgetuserinfo="getUserInfo"> 获取头像昵称 </button>
     <block wx:else>
@@ -10,11 +10,4 @@
   <view class="usermotto">
     <text class="user-motto" bindtap="clickToSend">{{motto}}</text>
   </view>
-</view>
-
-<button bindtap="djsj" id="loginButton">登录</button>
-
-<view class="single-goods" wx:for="{{goods}}" wx:key="" bindtap="showDetail" data-index="{{index}}" data-goods-id="{{item.id}}">
-  <text class="price">标题：{{item.title}}</text>
-  <text class="sale">|分组{{item.rules}}</text>
 </view>
