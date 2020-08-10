@@ -1,7 +1,6 @@
 //获取应用实例
 const app = getApp()
 var util = require('../../weichatPb/src/util.js');
-var Base64 = require('../../utils/base64.js');
 var protobuf = require('../../weichatPb/protobuf.js');
 app.globalData._protobuf = protobuf;
 var testConfig = require('../../test/test.js');
@@ -9,7 +8,7 @@ var testRoot = protobuf.Root.fromJSON(testConfig);
 var WebRequest = testRoot.lookup('test.RequestMessage')
 var HomeSymbolListRequest = testRoot.lookup('test.HomeSymbolListRequest');
 var MasterDataRespone = testRoot.lookup('test.MasterDataResponse')
-var HomeListRespone = testRoot.lookup('test.HomeSymbolListResponse')
+var WebResposeMsg = testRoot.lookup('test.ResponseMessage');
 var buffer;
 var protobuf = require('../../test/protobuf.js');
 var websocket = require('../../test/test.js');
@@ -87,11 +86,9 @@ Page({
     });
     // 监听发送事件
     wx.onSocketMessage(function(res) {
-      var str = that.arrayBufferToString(res); // 这个可以看 但是会乱码
-
-      // var msg = MasterDataRespone.decode(data);
-      // var msg = HomeListRespone.decode(data);
-      console.log("WebSocket收到服务器消息 msg：\n", res);
+      var view = new Uint8Array(res.data);
+      let x = WebResposeMsg.decode(view);
+      console.log(x);
     })
     // 监听连接关闭事件
     wx.onSocketClose(function(res) {
@@ -130,74 +127,5 @@ Page({
         console.log("sendSocketMessage失败");
       }
     })
-  },
-
-
-
-
-
-
-
-
-
-
-  // 转arrayBuffer
-  stringToArrayBuffer: function(str) {
-    var bytes = new Array();
-    var len, c;
-    len = str.length;
-    for (var i = 0; i < len; i++) {
-      c = str.charCodeAt(i);
-      if (c >= 0x010000 && c <= 0x10FFFF) {
-        bytes.push(((c >> 18) & 0x07) | 0xF0);
-        bytes.push(((c >> 12) & 0x3F) | 0x80);
-        bytes.push(((c >> 6) & 0x3F) | 0x80);
-        bytes.push((c & 0x3F) | 0x80);
-      } else if (c >= 0x000800 && c <= 0x00FFFF) {
-        bytes.push(((c >> 12) & 0x0F) | 0xE0);
-        bytes.push(((c >> 6) & 0x3F) | 0x80);
-        bytes.push((c & 0x3F) | 0x80);
-      } else if (c >= 0x000080 && c <= 0x0007FF) {
-        bytes.push(((c >> 6) & 0x1F) | 0xC0);
-        bytes.push((c & 0x3F) | 0x80);
-      } else {
-        bytes.push(c & 0xFF);
-      }
-    }
-    var array = new Int8Array(bytes.length);
-    for (var i in bytes) {
-      array[i] = bytes[i];
-    }
-    return array.buffer;
-  },
-  // arrayBuffer转字符串
-  arrayBufferToString: function(arr) {
-    if (typeof arr === 'string') {
-      return arr;
-    }
-    var dataview = new DataView(arr.data);
-    var ints = new Uint8Array(arr.data.byteLength);
-    for (var i = 0; i < ints.length; i++) {
-      ints[i] = dataview.getUint8(i);
-    }
-    arr = ints;
-    var str = '',
-      _arr = arr;
-    for (var i = 0; i < _arr.length; i++) {
-      var one = _arr[i].toString(2),
-        v = one.match(/^1+?(?=0)/);
-      if (v && one.length == 8) {
-        var bytesLength = v[0].length;
-        var store = _arr[i].toString(2).slice(7 - bytesLength);
-        for (var st = 1; st < bytesLength; st++) {
-          store += _arr[st + i].toString(2).slice(2);
-        }
-        str += String.fromCharCode(parseInt(store, 2));
-        i += bytesLength - 1;
-      } else {
-        str += String.fromCharCode(_arr[i]);
-      }
-    }
-    return str;
   },
 })
